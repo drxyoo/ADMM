@@ -21,15 +21,14 @@ Toggle.BorderSizePixel = 0
 
 -- Main Frame
 local Main = Instance.new("Frame")
-Main.Size = UDim2.new(0,280,0,480)
-Main.Position = UDim2.new(0.5,-140,0.5,-240)
+Main.Size = UDim2.new(0,280,0,520)
+Main.Position = UDim2.new(0.5,-140,0.5,-260)
 Main.BackgroundColor3 = Color3.fromRGB(25,25,25)
 Main.Visible = true
 Main.Parent = ScreenGui
 Main.Active = true
 Main.Draggable = true
 Main.BorderSizePixel = 0
-
 Instance.new("UICorner", Main).CornerRadius = UDim.new(0,16)
 
 -- Title
@@ -70,7 +69,7 @@ for i = 1,5 do
     table.insert(Slots, s)
 end
 
--- Buttons
+-- Button maker
 local function makeBtn(txt,col,y)
     local b = Instance.new("TextButton")
     b.Size = UDim2.new(1,-20,0,38)
@@ -89,11 +88,12 @@ end
 local AddPet = makeBtn("ADD PET", Color3.fromRGB(240,150,60), 125)
 local RemovePet = makeBtn("REMOVE PET", Color3.fromRGB(210,70,70), 170)
 local TradeBtn = makeBtn("SEND TRADE REQUEST", Color3.fromRGB(90,150,255), 215)
+local FreezeBtn = makeBtn("FREEZE TRADE", Color3.fromRGB(120,120,120), 260)
 
 -- Player Label
 local PlayerLabel = Instance.new("TextLabel")
 PlayerLabel.Size = UDim2.new(1,-20,0,30)
-PlayerLabel.Position = UDim2.new(0,10,0,265)
+PlayerLabel.Position = UDim2.new(0,10,0,310)
 PlayerLabel.Text = "SELECT PLAYER"
 PlayerLabel.BackgroundColor3 = Color3.fromRGB(45,45,45)
 PlayerLabel.TextColor3 = Color3.new(1,1,1)
@@ -106,7 +106,7 @@ Instance.new("UICorner", PlayerLabel)
 -- Player List
 local List = Instance.new("ScrollingFrame")
 List.Size = UDim2.new(1,-20,0,130)
-List.Position = UDim2.new(0,10,0,300)
+List.Position = UDim2.new(0,10,0,345)
 List.CanvasSize = UDim2.new(0,0,0,0)
 List.ScrollBarImageTransparency = 0.2
 List.BackgroundColor3 = Color3.fromRGB(35,35,35)
@@ -152,7 +152,10 @@ Players.PlayerRemoving:Connect(refreshPlayers)
 refreshPlayers()
 
 -- Slot Logic
+local frozen = false
+
 AddPet.MouseButton1Click:Connect(function()
+    if frozen then return end
     for i,slot in ipairs(Slots) do
         if slot.Text == tostring(i) then
             slot.Text = "PET"
@@ -163,6 +166,7 @@ AddPet.MouseButton1Click:Connect(function()
 end)
 
 RemovePet.MouseButton1Click:Connect(function()
+    if frozen then return end
     for i = #Slots,1,-1 do
         if Slots[i].Text == "PET" then
             Slots[i].Text = tostring(i)
@@ -172,7 +176,26 @@ RemovePet.MouseButton1Click:Connect(function()
     end
 end)
 
--- Toggle Logic
+-- Freeze Trade
+FreezeBtn.MouseButton1Click:Connect(function()
+    frozen = not frozen
+
+    if frozen then
+        FreezeBtn.Text = "UNFREEZE TRADE"
+        FreezeBtn.BackgroundColor3 = Color3.fromRGB(80,160,255)
+        AddPet.BackgroundColor3 = Color3.fromRGB(90,90,90)
+        RemovePet.BackgroundColor3 = Color3.fromRGB(90,90,90)
+        TradeBtn.BackgroundColor3 = Color3.fromRGB(90,90,90)
+    else
+        FreezeBtn.Text = "FREEZE TRADE"
+        FreezeBtn.BackgroundColor3 = Color3.fromRGB(120,120,120)
+        AddPet.BackgroundColor3 = Color3.fromRGB(240,150,60)
+        RemovePet.BackgroundColor3 = Color3.fromRGB(210,70,70)
+        TradeBtn.BackgroundColor3 = Color3.fromRGB(90,150,255)
+    end
+end)
+
+-- Toggle UI
 local open = true
 Toggle.MouseButton1Click:Connect(function()
     open = not open
