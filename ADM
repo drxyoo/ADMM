@@ -1,0 +1,192 @@
+local Players = game:GetService("Players")
+local LocalPlayer = Players.LocalPlayer
+
+-- GUI
+local ScreenGui = Instance.new("ScreenGui")
+ScreenGui.Name = "TradeUI"
+ScreenGui.Parent = LocalPlayer:WaitForChild("PlayerGui")
+ScreenGui.ResetOnSpawn = false
+
+-- Toggle Button
+local Toggle = Instance.new("TextButton")
+Toggle.Size = UDim2.new(0,150,0,40)
+Toggle.Position = UDim2.new(0,20,0.5,-20)
+Toggle.Text = "CLOSE TRADE"
+Toggle.BackgroundColor3 = Color3.fromRGB(70,140,255)
+Toggle.TextColor3 = Color3.new(1,1,1)
+Toggle.Font = Enum.Font.GothamBold
+Toggle.TextSize = 14
+Toggle.Parent = ScreenGui
+Toggle.BorderSizePixel = 0
+
+-- Main Frame
+local Main = Instance.new("Frame")
+Main.Size = UDim2.new(0,280,0,480)
+Main.Position = UDim2.new(0.5,-140,0.5,-240)
+Main.BackgroundColor3 = Color3.fromRGB(25,25,25)
+Main.Visible = true
+Main.Parent = ScreenGui
+Main.Active = true
+Main.Draggable = true
+Main.BorderSizePixel = 0
+
+Instance.new("UICorner", Main).CornerRadius = UDim.new(0,16)
+
+-- Title
+local Title = Instance.new("TextLabel")
+Title.Size = UDim2.new(1,0,0,45)
+Title.Text = "START TRADE (5)"
+Title.BackgroundColor3 = Color3.fromRGB(85,190,120)
+Title.TextColor3 = Color3.new(1,1,1)
+Title.Font = Enum.Font.GothamBold
+Title.TextSize = 18
+Title.Parent = Main
+Title.BorderSizePixel = 0
+Instance.new("UICorner", Title).CornerRadius = UDim.new(0,16)
+
+-- Pet Slots
+local SlotFrame = Instance.new("Frame")
+SlotFrame.Size = UDim2.new(1,-20,0,60)
+SlotFrame.Position = UDim2.new(0,10,0,55)
+SlotFrame.BackgroundTransparency = 1
+SlotFrame.Parent = Main
+
+local slotLayout = Instance.new("UIListLayout", SlotFrame)
+slotLayout.FillDirection = Enum.FillDirection.Horizontal
+slotLayout.Padding = UDim.new(0,6)
+
+local Slots = {}
+
+for i = 1,5 do
+    local s = Instance.new("TextLabel")
+    s.Size = UDim2.new(0,48,0,48)
+    s.Text = i
+    s.BackgroundColor3 = Color3.fromRGB(60,60,60)
+    s.TextColor3 = Color3.new(1,1,1)
+    s.Font = Enum.Font.GothamBold
+    s.TextSize = 16
+    s.Parent = SlotFrame
+    Instance.new("UICorner", s).CornerRadius = UDim.new(0,12)
+    table.insert(Slots, s)
+end
+
+-- Buttons
+local function makeBtn(txt,col,y)
+    local b = Instance.new("TextButton")
+    b.Size = UDim2.new(1,-20,0,38)
+    b.Position = UDim2.new(0,10,0,y)
+    b.Text = txt
+    b.BackgroundColor3 = col
+    b.TextColor3 = Color3.new(1,1,1)
+    b.Font = Enum.Font.GothamBold
+    b.TextSize = 15
+    b.Parent = Main
+    b.BorderSizePixel = 0
+    Instance.new("UICorner", b).CornerRadius = UDim.new(0,10)
+    return b
+end
+
+local AddPet = makeBtn("ADD PET", Color3.fromRGB(240,150,60), 125)
+local RemovePet = makeBtn("REMOVE PET", Color3.fromRGB(210,70,70), 170)
+local TradeBtn = makeBtn("SEND TRADE REQUEST", Color3.fromRGB(90,150,255), 215)
+
+-- Player Label
+local PlayerLabel = Instance.new("TextLabel")
+PlayerLabel.Size = UDim2.new(1,-20,0,30)
+PlayerLabel.Position = UDim2.new(0,10,0,265)
+PlayerLabel.Text = "SELECT PLAYER"
+PlayerLabel.BackgroundColor3 = Color3.fromRGB(45,45,45)
+PlayerLabel.TextColor3 = Color3.new(1,1,1)
+PlayerLabel.Font = Enum.Font.GothamBold
+PlayerLabel.TextSize = 14
+PlayerLabel.Parent = Main
+PlayerLabel.BorderSizePixel = 0
+Instance.new("UICorner", PlayerLabel)
+
+-- Player List
+local List = Instance.new("ScrollingFrame")
+List.Size = UDim2.new(1,-20,0,130)
+List.Position = UDim2.new(0,10,0,300)
+List.CanvasSize = UDim2.new(0,0,0,0)
+List.ScrollBarImageTransparency = 0.2
+List.BackgroundColor3 = Color3.fromRGB(35,35,35)
+List.Parent = Main
+List.BorderSizePixel = 0
+Instance.new("UICorner", List)
+
+local layout = Instance.new("UIListLayout", List)
+layout.Padding = UDim.new(0,6)
+
+local SelectedPlayer
+
+local function refreshPlayers()
+    List:ClearAllChildren()
+    layout.Parent = List
+
+    for _,plr in pairs(Players:GetPlayers()) do
+        if plr ~= LocalPlayer then
+            local b = Instance.new("TextButton")
+            b.Size = UDim2.new(1,-10,0,36)
+            b.Text = plr.Name
+            b.BackgroundColor3 = Color3.fromRGB(90,120,70)
+            b.TextColor3 = Color3.new(1,1,1)
+            b.Font = Enum.Font.Gotham
+            b.TextSize = 14
+            b.Parent = List
+            b.BorderSizePixel = 0
+            Instance.new("UICorner", b)
+
+            b.MouseButton1Click:Connect(function()
+                SelectedPlayer = plr
+                PlayerLabel.Text = "SELECTED: "..plr.Name
+            end)
+        end
+    end
+
+    task.wait()
+    List.CanvasSize = UDim2.new(0,0,0,layout.AbsoluteContentSize.Y + 10)
+end
+
+Players.PlayerAdded:Connect(refreshPlayers)
+Players.PlayerRemoving:Connect(refreshPlayers)
+refreshPlayers()
+
+-- Slot Logic
+AddPet.MouseButton1Click:Connect(function()
+    for i,slot in ipairs(Slots) do
+        if slot.Text == tostring(i) then
+            slot.Text = "PET"
+            slot.BackgroundColor3 = Color3.fromRGB(100,180,120)
+            break
+        end
+    end
+end)
+
+RemovePet.MouseButton1Click:Connect(function()
+    for i = #Slots,1,-1 do
+        if Slots[i].Text == "PET" then
+            Slots[i].Text = tostring(i)
+            Slots[i].BackgroundColor3 = Color3.fromRGB(60,60,60)
+            break
+        end
+    end
+end)
+
+-- Toggle Logic
+local open = true
+Toggle.MouseButton1Click:Connect(function()
+    open = not open
+    Main.Visible = open
+    Toggle.Text = open and "CLOSE TRADE" or "OPEN TRADE"
+end)
+
+-- Signature
+local Sig = Instance.new("TextLabel")
+Sig.Size = UDim2.new(1,0,0,25)
+Sig.Position = UDim2.new(0,0,1,-25)
+Sig.Text = "MADE BY DRXSCRIPTS"
+Sig.TextColor3 = Color3.fromRGB(160,160,160)
+Sig.BackgroundTransparency = 1
+Sig.Font = Enum.Font.GothamBold
+Sig.TextSize = 12
+Sig.Parent = Main
